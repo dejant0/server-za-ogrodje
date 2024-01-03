@@ -15,7 +15,6 @@ IMAGE_SAVE_PATH = ''
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    print("zivjo kostrun")
 
     data = request.json
     image_data = data['image']
