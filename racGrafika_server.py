@@ -1,9 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-from kafka import KafkaProducer
+#import kafka
 import base64
 import os
+import redis
 
 #dejan snemanje in prenos v nevronsko mrezo
 
@@ -57,10 +58,12 @@ def read_audio(audio, target_sr=16000, target_duration=3):
 
 #dejan end
 
+r = redis.Redis()
 app = Flask(__name__)
 CORS(app)
 
-#producer = KafkaProducer(bootstrap_servers='your_kafka_server')
+
+#producer = kafka.KafkaProducer(bootstrap_servers='your_kafka_server')
 
 # Directory where images will be saved
 IMAGE_SAVE_PATH = ''
@@ -81,11 +84,22 @@ def upload():
     # Save the image
     with open(file_path, 'wb') as file:
         file.write(image_binary)
+
+    #send image to neural network
+    r.set('image_capture', image_binary)
     
     # Send to Kafka
     #producer.send('your_topic', image_binary)
 
     return jsonify({"status": "success", "file_saved": file_name})
+
+@app.route('/get_result', methods=['GET'])
+def get_result():
+    while True:
+        bytes = r.get('detection')
+        result = bytes.decode('utf-8')
+        if result is not None:
+            return jsonify({"detection": result})
 
 @app.route('/start_recording', methods=['POST'])
 def process_image():
