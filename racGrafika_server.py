@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import requests
 
 #import kafka
 import base64
@@ -72,7 +73,12 @@ IMAGE_SAVE_PATH = ''
 def upload():
 
     data = request.json
+
     image_data = data['image']
+
+
+
+
 
     # Convert Base64 to binary
     image_binary = base64.b64decode(image_data.split(',')[1])
@@ -98,8 +104,19 @@ def get_result():
     while True:
         bytes = r.get('detection')
         result = bytes.decode('utf-8')
+        print(result)
+
         if result is not None:
+            if result=='dejan' or result=="nemanja":
+                with open('server_web_image.png', 'rb') as img:
+                    url = 'http://localhost:4000/'
+
+                    img_data = img.read()
+                    headers = {'Content-Type': 'application/octet-stream'}
+                    response = requests.post(url, data=img_data, headers=headers)
+
             return jsonify({"detection": result})
+    
 
 @app.route('/start_recording', methods=['POST'])
 def process_image():
