@@ -19,8 +19,8 @@ from io import BytesIO
 #from PIL import Image
 from scipy import signal
 import librosa
-
-
+import struct
+import time
 from scipy.signal import spectrogram
 from kafka import KafkaProducer, KafkaConsumer
 
@@ -28,7 +28,19 @@ producer = KafkaProducer(bootstrap_servers='localhost:9092')
 # Set up Kafka consumer
 consumer = KafkaConsumer('prepoznaj_ukaz_response', bootstrap_servers='localhost:9092')
 
+# packet_format = '4h'  # 4 int16_t values
+# packet_size = struct.calcsize(packet_format)
+# def read_data(ser):
+#     while ser.in_waiting >= packet_size:
+#         packet = ser.read(packet_size)
+#         data = struct.unpack(packet_format, packet)
+#         if data[2]>=3500:
+#             print("True")
+#         else:
+#             print("False")
 
+
+#         #print(f"Received data: {data}")
 
 def read_audio(audio, target_sr=16000, target_duration=3):
         sr = 44100
@@ -102,6 +114,7 @@ def upload():
 @app.route('/get_result', methods=['GET'])
 def get_result():
     while True:
+
         bytes = r.get('detection')
         result = bytes.decode('utf-8')
         print(result)
