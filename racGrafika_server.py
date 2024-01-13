@@ -21,6 +21,8 @@ from scipy import signal
 import librosa
 import struct
 import time
+import serial
+
 from scipy.signal import spectrogram
 from kafka import KafkaProducer, KafkaConsumer
 
@@ -28,19 +30,29 @@ producer = KafkaProducer(bootstrap_servers='localhost:9092')
 # Set up Kafka consumer
 consumer = KafkaConsumer('prepoznaj_ukaz_response', bootstrap_servers='localhost:9092')
 
-# packet_format = '4h'  # 4 int16_t values
-# packet_size = struct.calcsize(packet_format)
-# def read_data(ser):
-#     while ser.in_waiting >= packet_size:
-#         packet = ser.read(packet_size)
-#         data = struct.unpack(packet_format, packet)
-#         if data[2]>=3500:
-#             print("True")
-#         else:
-#             print("False")
+packet_format = '4h'  # 4 int16_t values
+packet_size = struct.calcsize(packet_format)
+def read_data():
+    ser = serial.Serial('COM5', 115200)
+    while ser.in_waiting >= packet_size:
+        packet = ser.read(packet_size)
+        data = struct.unpack(packet_format, packet)
+        if data[2]>=3500 and data[3]<3500:
+            print("levo")
+            return("levo")
+        elif data[2]<3500 and data[3]>=3500:
+            print("desno")
+            return("desno")
+        elif data[2]>=3500 and data[3]>=3500:
+            print("oba")
+            return("oba")
+        elif data[2]<3500 and data[3]<3500:
+            print("false")
+            return("false")
+            
 
 
-#         #print(f"Received data: {data}")
+        #print(f"Received data: {data}")
 
 def read_audio(audio, target_sr=16000, target_duration=3):
         sr = 44100
