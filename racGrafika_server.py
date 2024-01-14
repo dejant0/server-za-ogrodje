@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, make_response, send_file
+from flask import Flask, request, jsonify, make_response, send_file, current_app
 from flask_cors import CORS
 import requests
 
@@ -31,6 +31,8 @@ import cv2
 #producer = KafkaProducer(bootstrap_servers='localhost:9092')
 # Set up Kafka consumer
 #consumer = KafkaConsumer('prepoznaj_ukaz_response', bootstrap_servers='localhost:9092')
+
+
 
 packet_format = '4h'  # 4 int16_t values
 packet_size = struct.calcsize(packet_format)
@@ -178,6 +180,7 @@ def process_image():
 
     return jsonify({"status": "success", "message": a})
 
+
 height = int(r.get("height"))
 width = int(r.get("width"))
 @app.route('/get-image', methods=['GET'])
@@ -199,6 +202,50 @@ def get_image():
 
     return response
 
-if __name__ == '__main__':
+#left
+@app.route('/set-left-status', methods=['GET'])
+def setLeftHandStatus():
+    value = request.args.get('value')
+    if value == 'true':
+        current_app.config['leftStatus'] = True
+    else:
+        if value == 'false':
+            current_app.config['leftStatus'] = False
+        else:
+            return 'Invalid left hand status value.'
 
-    app.run(debug=True)
+    return 'Left hand status set to {}.'.format(value)
+thing = True
+@app.route('/get-left-status', methods=['GET'])
+def getLeftHandStatus():
+    try:
+        print(current_app.config['leftStatus'])
+    except:
+        current_app.config['leftStatus'] = False
+    return jsonify({'leftStatus': current_app.config['leftStatus']})
+
+#right
+@app.route('/set-right-status', methods=['GET'])
+def setRightHandStatus():
+    value = request.args.get('value')
+    if value == 'true':
+        current_app.config['rightStatus'] = True
+    else:
+        if value == 'false':
+            current_app.config['rightStatus'] = False
+        else:
+            return 'Invalid right hand status value.'
+
+    return 'Right hand status set to {}.'.format(value)
+thing = True
+@app.route('/get-right-status', methods=['GET'])
+def getRightHandStatus():
+    try:
+        print(current_app.config['rightStatus'])
+    except:
+        current_app.config['rightStatus'] = False
+    return jsonify({'rightStatus': current_app.config['rightStatus']})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
+    
