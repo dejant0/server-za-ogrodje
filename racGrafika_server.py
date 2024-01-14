@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response, send_file
 from flask_cors import CORS
 import requests
 
@@ -16,7 +16,7 @@ import tensorflow as tf
 import sounddevice as sd
 import numpy as np
 from io import BytesIO
-#from PIL import Image
+from PIL import Image
 from scipy import signal
 import librosa
 import struct
@@ -24,11 +24,13 @@ import time
 import serial
 
 from scipy.signal import spectrogram
-from kafka import KafkaProducer, KafkaConsumer
+#from kafka import KafkaProducer, KafkaConsumer
 
-producer = KafkaProducer(bootstrap_servers='localhost:9092')
+import fps_manager
+import cv2
+#producer = KafkaProducer(bootstrap_servers='localhost:9092')
 # Set up Kafka consumer
-consumer = KafkaConsumer('prepoznaj_ukaz_response', bootstrap_servers='localhost:9092')
+#consumer = KafkaConsumer('prepoznaj_ukaz_response', bootstrap_servers='localhost:9092')
 
 packet_format = '4h'  # 4 int16_t values
 packet_size = struct.calcsize(packet_format)
@@ -100,10 +102,6 @@ def upload():
 
     image_data = data['image']
 
-
-
-
-
     # Convert Base64 to binary
     image_binary = base64.b64decode(image_data.split(',')[1])
 
@@ -139,8 +137,8 @@ def get_result():
                     img_data = img.read()
                     headers = {'Content-Type': 'application/octet-stream'}
                     response = requests.post(url, data=img_data, headers=headers)
-
-            return jsonify({"detection": result})
+                    response.headers['Access-Control-Allow-Origin'] = '*'
+            return jsonify(response)
     
 
 @app.route('/start_recording', methods=['POST'])
@@ -179,6 +177,27 @@ def process_image():
 
 
     return jsonify({"status": "success", "message": a})
+
+height = int(r.get("height"))
+width = int(r.get("width"))
+@app.route('/get-image', methods=['GET'])
+def get_image():
+    t_start = time.perf_counter()
+    frame = np.frombuffer(r.get("frame:edited"), dtype=np.uint8)
+    frame = frame.reshape((height, width, 3))
+    frame = frame.copy()
+    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+    img = Image.fromarray(np.uint8(frame))
+    img.save('output.jpg')
+
+    response = make_response(send_file('output.jpg', mimetype='image/jpg'))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    t_end = time.perf_counter()
+    t_elapsed, t_diff = fps_manager.time_diff(t_start, t_end, 30)
+    if t_diff > 0:
+        time.sleep(t_diff)
+
+    return response
 
 if __name__ == '__main__':
 
