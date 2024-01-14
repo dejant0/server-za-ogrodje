@@ -28,6 +28,9 @@ from kafka import KafkaProducer, KafkaConsumer
 
 import fps_manager
 import cv2
+
+#threading for right and left hand
+import threading
 producer = KafkaProducer(bootstrap_servers='localhost:9092')
 # Set up Kafka consumer
 consumer = KafkaConsumer('prepoznaj_ukaz_response', bootstrap_servers='localhost:9092')
@@ -36,27 +39,55 @@ consumer = KafkaConsumer('prepoznaj_ukaz_response', bootstrap_servers='localhost
 
 packet_format = '4h'  # 4 int16_t values
 packet_size = struct.calcsize(packet_format)
+
 def read_data():
+    global leftHand
+    global rightHand
     ser = serial.Serial('COM5', 115200)
+
     while ser.in_waiting >= packet_size:
         packet = ser.read(packet_size)
         data = struct.unpack(packet_format, packet)
         if data[2]>=3500 and data[3]<3500:
             print("levo")
-            return("levo")
+            # leftHand = True
+            # rightHand = False
+            r.set("leftHand", True)
+            r.set("rightHand", False)
+
+            #return("levo")
         elif data[2]<3500 and data[3]>=3500:
             print("desno")
-            return("desno")
+            # rightHand = True
+            # leftHand = False
+            r.set("leftHand", False)
+            r.set("rightHand", True)
+            #return("desno")
         elif data[2]>=3500 and data[3]>=3500:
             print("oba")
-            return("oba")
+            # rightHand = True
+            # leftHand = True
+            r.set("leftHand", True)
+            r.set("rightHand", True)
+            #return("oba")
         elif data[2]<3500 and data[3]<3500:
+            # rightHand = False
+            # leftHand = False
+            r.set("leftHand", False)
+            r.set("rightHand", False)
             print("false")
-            return("false")
+            #return("false")
             
 
 
         #print(f"Received data: {data}")
+            
+def scheduled_read_data():
+    read_data()
+    # Schedule the function to be called again after 0.5 seconds
+    threading.Timer(0.5, scheduled_read_data).start()
+
+#scheduled_read_data()
 
 def read_audio(audio, target_sr=16000, target_duration=3):
         sr = 44100
@@ -225,7 +256,11 @@ def getLeftHandStatus():
         print(current_app.config['leftStatus'])
     except:
         current_app.config['leftStatus'] = False
-    return jsonify({'leftStatus': current_app.config['leftStatus']})
+
+    lhand =int(r.get("leftHand"))
+    #return jsonify({'leftStatus': current_app.config['leftStatus']})
+    return jsonify({'leftStatus': lhand})
+
 
 #right
 @app.route('/set-right-status', methods=['GET'])
@@ -243,12 +278,15 @@ def setRightHandStatus():
 thing = True
 @app.route('/get-right-status', methods=['GET'])
 def getRightHandStatus():
+
     try:
         print(current_app.config['rightStatus'])
     except:
         current_app.config['rightStatus'] = False
-    return jsonify({'rightStatus': current_app.config['rightStatus']})
-
+    #return jsonify({'rightStatus': current_app.config['rightStatus']})
+    rhand =int(r.get("rightHand"))
+    return jsonify({'rightStatus': rhand})
 if __name__ == '__main__':
+
     app.run(host='0.0.0.0', port=5000, debug=True)
     
