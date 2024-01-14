@@ -24,13 +24,13 @@ import time
 import serial
 
 from scipy.signal import spectrogram
-#from kafka import KafkaProducer, KafkaConsumer
+from kafka import KafkaProducer, KafkaConsumer
 
 import fps_manager
 import cv2
-#producer = KafkaProducer(bootstrap_servers='localhost:9092')
+producer = KafkaProducer(bootstrap_servers='localhost:9092')
 # Set up Kafka consumer
-#consumer = KafkaConsumer('prepoznaj_ukaz_response', bootstrap_servers='localhost:9092')
+consumer = KafkaConsumer('prepoznaj_ukaz_response', bootstrap_servers='localhost:9092')
 
 
 
@@ -90,7 +90,8 @@ def read_audio(audio, target_sr=16000, target_duration=3):
 r = redis.Redis()
 app = Flask(__name__)
 CORS(app)
-
+r.set("height", 480)
+r.set("width", 454)
 
 #producer = kafka.KafkaProducer(bootstrap_servers='your_kafka_server')
 
@@ -126,21 +127,23 @@ def upload():
 @app.route('/get_result', methods=['GET'])
 def get_result():
     while True:
-
+        print("Cakanje")
         bytes = r.get('detection')
         result = bytes.decode('utf-8')
         print(result)
 
         if result is not None:
-            if result=='dejan' or result=="nemanja":
-                with open('server_web_image.png', 'rb') as img:
-                    url = 'http://localhost:4000/'
+            # if result=='dsejan' or result=="nemanja":
+            #     with open('server_web_image.png', 'rb') as img:
+            #         url = 'http://localhost:4000/'
 
-                    img_data = img.read()
-                    headers = {'Content-Type': 'application/octet-stream'}
-                    response = requests.post(url, data=img_data, headers=headers)
-                    response.headers['Access-Control-Allow-Origin'] = '*'
-            return jsonify(response)
+            #         img_data = img.read()
+            #         headers = {'Content-Type': 'application/octet-stream', 'Access-Control-Allow-Origin': '*'}
+            #         #headers = {'Content-Type': 'application/octet-stream'}
+            #         response = requests.post(url, data=img_data, headers=headers)
+            #         #response.headers['Access-Control-Allow-Origin'] = '*'
+            #     return jsonify(response)
+            return jsonify({"detection": result})
     
 
 @app.route('/start_recording', methods=['POST'])
