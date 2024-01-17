@@ -217,7 +217,6 @@ height = int(r.get("height"))
 width = int(r.get("width"))
 @app.route('/get-image', methods=['GET'])
 def get_image():
-    t_start = time.perf_counter()
     frame = np.frombuffer(r.get("frame:edited"), dtype=np.uint8)
     frame = frame.reshape((height, width, 3))
     frame = frame.copy()
@@ -227,10 +226,6 @@ def get_image():
 
     response = make_response(send_file('output.jpg', mimetype='image/jpg'))
     response.headers['Access-Control-Allow-Origin'] = '*'
-    t_end = time.perf_counter()
-    t_elapsed, t_diff = fps_manager.time_diff(t_start, t_end, 30)
-    if t_diff > 0:
-        time.sleep(t_diff)
 
     return response
 
