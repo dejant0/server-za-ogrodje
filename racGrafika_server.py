@@ -7,30 +7,28 @@ import base64
 import os
 import redis
 
-#dejan snemanje in prenos v nevronsko mrezo
-
-import tkinter as tk
-import random
-import tensorflow as tf
+# import tkinter as tk
+# import random
+# import tensorflow as tf
 # import matplotlib.pyplot as plt
+# import time
+# import librosa
+# from scipy.signal import spectrogram
+# import threading
+
 import sounddevice as sd
 import numpy as np
 from io import BytesIO
 from PIL import Image
 from scipy import signal
-import librosa
+
 import struct
-import time
 import serial
 
-from scipy.signal import spectrogram
-from kafka import KafkaProducer, KafkaConsumer
 
 import fps_manager
 import cv2
 
-#threading for right and left hand
-import threading
 producer = KafkaProducer(bootstrap_servers='localhost:9092')
 # Set up Kafka consumer
 consumer = KafkaConsumer('prepoznaj_ukaz_response', bootstrap_servers='localhost:9092')
