@@ -29,6 +29,7 @@ import serial
 import fps_manager
 import cv2
 
+from kafka import KafkaProducer, KafkaConsumer
 producer = KafkaProducer(bootstrap_servers='localhost:9092')
 # Set up Kafka consumer
 consumer = KafkaConsumer('prepoznaj_ukaz_response', bootstrap_servers='localhost:9092')
