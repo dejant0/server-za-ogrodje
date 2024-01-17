@@ -229,20 +229,7 @@ def get_image():
 
     return response
 
-#left
-@app.route('/set-left-status', methods=['GET'])
-def setLeftHandStatus():
-    value = request.args.get('value')
-    if value == 'true':
-        current_app.config['leftStatus'] = True
-    else:
-        if value == 'false':
-            current_app.config['leftStatus'] = False
-        else:
-            return 'Invalid left hand status value.'
 
-    return 'Left hand status set to {}.'.format(value) 
-    
 @app.route('/get-left-status', methods=['GET'])
 def getLeftHandStatus():
     try:
@@ -250,25 +237,11 @@ def getLeftHandStatus():
     except:
         current_app.config['leftStatus'] = False
 
-    lhand =int(r.get("leftHand"))
-    #return jsonify({'leftStatus': current_app.config['leftStatus']})
-    return jsonify({'leftStatus': lhand})
+    #lhand =int(r.get("leftHand"))
+    return jsonify({'leftStatus': current_app.config['leftStatus']})
+    #return jsonify({'leftStatus': lhand})
 
 
-#right
-@app.route('/set-right-status', methods=['GET'])
-def setRightHandStatus():
-    value = request.args.get('value')
-    if value == 'true':
-        current_app.config['rightStatus'] = True
-    else:
-        if value == 'false':
-            current_app.config['rightStatus'] = False
-        else:
-            return 'Invalid right hand status value.'
-
-    return 'Right hand status set to {}.'.format(value)
-thing = True
 @app.route('/get-right-status', methods=['GET'])
 def getRightHandStatus():
 
@@ -276,31 +249,28 @@ def getRightHandStatus():
         print(current_app.config['rightStatus'])
     except:
         current_app.config['rightStatus'] = False
-    #return jsonify({'rightStatus': current_app.config['rightStatus']})
-    rhand =int(r.get("rightHand"))
-    return jsonify({'rightStatus': rhand})
+    return jsonify({'rightStatus': current_app.config['rightStatus']})
+    #rhand =int(r.get("rightHand"))
+    #return jsonify({'rightStatus': rhand})
 
 
 @app.route('/set-hand-status', methods=['GET'])
-def setLeftHandStatus():
+def setHandStatus():
     left = request.args.get('left')
     right = request.args.get('right')
+    response = ''
     if left == 'true':
         current_app.config['leftStatus'] = True
     else:
         if left == 'false':
             current_app.config['leftStatus'] = False
-        else:
-            return 'Invalid left hand status value.'
     if right == 'true':
         current_app.config['rightStatus'] = True
     else:
         if left == 'false':
             current_app.config['rightStatus'] = False
-        else:
-            return 'Invalid right hand status value.'
 
-    return 'Left hand status set to {}.'.format(value) 
+    return 'Left hand status set to ' + str(left) + ' and right to ' + str(right)
 
 
 
