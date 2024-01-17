@@ -267,7 +267,7 @@ def setHandStatus():
     if right == 'true':
         current_app.config['rightStatus'] = True
     else:
-        if left == 'false':
+        if right == 'false':
             current_app.config['rightStatus'] = False
 
     return 'Left hand status set to ' + str(left) + ' and right to ' + str(right)
